@@ -1,71 +1,78 @@
 # coding=UTF-8
 import os
 import sqlite3
-from openpyxl import load_workbook
 from xlrd import open_workbook
-from xlrd.sheet import ctype_text   
-import numpy as np
+# from xlrd.sheet import ctype_text
 import pandas as pd
+# import db_connect
 
-#conn = sqlite3.connect('visitor.db')
+# print(os.path.dirname(__file__))
 
-print(os.path.dirname(__file__))
-wb = open_workbook('C:/Users/Dragon/tour_statistic/mysite/tours/vistor_history/1602.xls', formatting_info=True)
-
+# Open tw visitor xls report
+xls_path = 'C:/Users/Dragon/tour_statistic/mysite/tours/vistor_history/1602.xls'
+wb = open_workbook(xls_path, formatting_info=True)
 sheet = wb.sheet_by_name('Sheet3')
 
-#print(type(sheet.cell_value(0,0)))
-print(sheet.cell_value(1,3))
-
-#print(sheet.row_values(5))
-
 # Read Column Title
-column_title = []
+visitor_reason = []
 for i in range(0, sheet.ncols):
     cell_value = sheet.cell(1, i).value
-    if not (cell_value == '' or 'Residence' in cell_value or 'Total' in cell_value):
-        column_title.append(cell_value.replace('\n', ' '))
+    # Resident and Total column not extract
+    if not (cell_value == '' or 'Residence' in cell_value or
+            'Total' in cell_value):
+        visitor_reason.append(cell_value.replace('\n', ' '))
 
-print(column_title)
-
-index_title = []
+visitor_area = []
 for i in range(0, sheet.nrows):
     cell_value = sheet.cell(i, 1).value
+    # Total row not extract
     if 'Total' in cell_value or 'Total' in sheet.cell_value(i, 2):
         continue
+    # Merge Cell should shift column
     if '東南亞地區' in cell_value or cell_value == '':
         cell_value_shift = sheet.cell_value(i, 2)
         if not cell_value_shift == '':
-            index_title.append(cell_value_shift)
+            visitor_area.append(cell_value_shift)
     else:
-        index_title.append(cell_value)
-print(index_title)
+        visitor_area.append(cell_value)
 
 data_list = []
 for i in range(0, sheet.ncols-1):
     data = []
     for j in range(0, sheet.nrows-1):
-        if sheet.cell(j, i).ctype == 2:
-            if not('Total' in sheet.cell_value(j, 2) or 'Total' in sheet.cell_value(j, 1)):
+        if sheet.cell(j, i).ctype == 2:  # ctype = 2 is number
+            # not extract total cell value
+            if not('Total' in sheet.cell_value(j, 2) or
+                   'Total' in sheet.cell_value(j, 1)):
                 data.append(sheet.cell(j, i).value)
-            #print(sheet.cell(j, i).value + ' ' + str(sheet.cell(j, i).ctype))
+        # add a data row into data list
         if j == sheet.nrows - 2 and len(data) > 0:
             data_list.append(data)
 
-#print(data_list)
+visitor_df = pd.DataFrame(data_list, visitor_reason, visitor_area,)
+# print(visitor_df.head)
 
-visitor_data = pd.DataFrame(data_list, column_title, index_title)
-#print(visitor_data.index)
-print(visitor_data.head)
+conn = sqlite3.connect('tw_visitor.db')
+cursor = conn.cursor()
 
-#print(sheet.ncols)
-#print(sheet.nrows)
 
-"""
-row = sheet.row(1)  # 1st row 
-# Print 1st row values and types
-print('(Column #) type:value')
-for idx, cell_obj in enumerate(row):
-    cell_type_str = ctype_text.get(cell_obj.ctype, 'unknown type')
-    print('(%s) %s %s' % (idx, cell_type_str.encode('utf-8'), cell_obj.value))
-"""
+def insert_record(date, area, reason, value):
+    sql = "INSERT INTO tw_visitor VALUES ('{0}', '{1}', '{2}', {3})"
+    sql = sql.format(date, area, reason, value)
+    cursor.execute(sql)
+    conn.commit()
+
+rows = visitor_df.iterrows()
+for row in rows:
+    for idx in range(0, row[1].size):
+        date = '2016-02'
+        area = row[0]
+        reason = row[1].index[idx]
+        value = row[1][idx]
+        insert_record(date, area, reason, value)
+        # print(row[1].index[idx])
+        # print(row[1][idx])
+
+sql = 'SELECT * FROM tw_visitor'
+for row in cursor.execute(sql):
+    print(row) 
