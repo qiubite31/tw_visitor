@@ -15,5 +15,5 @@ class SqliteDBObject:
         return self.cursor.execute(sql)
 
     def db_close(self):
-        conn.close()
+        self.conn.close()
 
