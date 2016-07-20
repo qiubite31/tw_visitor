@@ -4,7 +4,7 @@ import sqlite3
 from xlrd import open_workbook
 # from xlrd.sheet import ctype_text
 import pandas as pd
-# import db_connect
+from db_object import SqliteDBObject
 
 # print(os.path.dirname(__file__))
 
@@ -50,29 +50,30 @@ for i in range(0, sheet.ncols-1):
             data_list.append(data)
 
 visitor_df = pd.DataFrame(data_list, visitor_reason, visitor_area,)
-# print(visitor_df.head)
 
-conn = sqlite3.connect('tw_visitor.db')
-cursor = conn.cursor()
+db_obj = SqliteDBObject('tw_visitor.db')
 
 
 def insert_record(date, area, reason, value):
     sql = "INSERT INTO tw_visitor VALUES ('{0}', '{1}', '{2}', {3})"
     sql = sql.format(date, area, reason, value)
-    cursor.execute(sql)
-    conn.commit()
+    db_obj.non_select_query(sql)
+
+
 
 rows = visitor_df.iterrows()
 for row in rows:
     for idx in range(0, row[1].size):
         date = '2016-02'
-        area = row[0]
-        reason = row[1].index[idx]
+        area = row[1].index[idx]
+        reason = row[0]
         value = row[1][idx]
         insert_record(date, area, reason, value)
-        # print(row[1].index[idx])
-        # print(row[1][idx])
 
-sql = 'SELECT * FROM tw_visitor'
-for row in cursor.execute(sql):
-    print(row) 
+sql = 'Delete FROM tw_visitor'
+db_obj.non_select_query(sql)
+
+
+sql = 'SELECT COUNT(*) FROM tw_visitor'
+for row in db_obj.select_query(sql):
+    print(row)
