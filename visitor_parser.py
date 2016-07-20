@@ -1,17 +1,40 @@
 # coding=UTF-8
+import sys
 import os
+import re
 import sqlite3
 from xlrd import open_workbook
 # from xlrd.sheet import ctype_text
 import pandas as pd
 from db_object import SqliteDBObject
 
-# print(os.path.dirname(__file__))
+
+def insert_record(date, area, reason, value):
+    sql = "INSERT INTO tw_visitor VALUES ('{0}', '{1}', '{2}', {3})"
+    sql = sql.format(date, area, reason, value)
+    db_obj.non_select_query(sql)
+
+db_obj = SqliteDBObject('tw_visitor.db')
 
 # Open tw visitor xls report
-xls_path = 'C:/Users/Dragon/tour_statistic/mysite/tours/vistor_history/1602.xls'
+xls_path = 'visitor_data/201602.xls'
 wb = open_workbook(xls_path, formatting_info=True)
 sheet = wb.sheet_by_name('Sheet3')
+
+# Fetch xls report month
+report_title = sheet.cell_value(0, 0)
+m = re.search(r'(\d{3})年(\d{1,2})月', report_title)
+year = int(m.group(1)) + 1911
+month = int(m.group(2))
+report_month = str(year) + '-' + (str(month) if month-10 >= 0 else '0' + str(month))
+
+# Check whether this month data exist in table or not
+sql = 'SELECT DISTINCT REPORT_MONTH FROM TW_VISITOR'
+exist_month = [month[0] for month in db_obj.select_query(sql)]
+if report_month in exist_month:
+    print('This month had already extracted!')
+    db_obj.db_close()
+    sys.exit()
 
 # Read Column Title
 visitor_reason = []
@@ -51,15 +74,12 @@ for i in range(0, sheet.ncols-1):
 
 visitor_df = pd.DataFrame(data_list, visitor_reason, visitor_area,)
 
-db_obj = SqliteDBObject('tw_visitor.db')
-
-
-def insert_record(date, area, reason, value):
-    sql = "INSERT INTO tw_visitor VALUES ('{0}', '{1}', '{2}', {3})"
-    sql = sql.format(date, area, reason, value)
-    db_obj.non_select_query(sql)
-
-
+"""
+# create table
+sql = '''CREATE TABLE tw_visitor
+             (report_month text, area text, reason text, value real)'''
+db_obj.non_select_query(sql)
+"""
 
 rows = visitor_df.iterrows()
 for row in rows:
@@ -70,10 +90,8 @@ for row in rows:
         value = row[1][idx]
         insert_record(date, area, reason, value)
 
-sql = 'Delete FROM tw_visitor'
-db_obj.non_select_query(sql)
-
-
 sql = 'SELECT COUNT(*) FROM tw_visitor'
 for row in db_obj.select_query(sql):
     print(row)
+
+db_obj.db_close()
