@@ -17,7 +17,7 @@ def insert_record(date, area, reason, value):
 db_obj = SqliteDBObject('tw_visitor.db')
 
 # Open tw visitor xls report
-xls_path = 'visitor_data/201602.xls'
+xls_path = 'visitor_data/201603.xls'
 wb = open_workbook(xls_path, formatting_info=True)
 sheet = wb.sheet_by_name('Sheet3')
 
@@ -33,8 +33,8 @@ sql = 'SELECT DISTINCT REPORT_MONTH FROM TW_VISITOR'
 exist_month = [month[0] for month in db_obj.select_query(sql)]
 if report_month in exist_month:
     print('This month had already extracted!')
-    db_obj.db_close()
-    sys.exit()
+    # db_obj.db_close()
+    # sys.exit()
 
 # Read Column Title
 visitor_reason = []
@@ -60,13 +60,14 @@ for i in range(0, sheet.nrows):
         visitor_area.append(cell_value)
 
 data_list = []
-for i in range(0, sheet.ncols-1):
+for i in range(0, 14):  # sheet.ncols有時會到14有時讀到15
     data = []
     for j in range(0, sheet.nrows-1):
         if sheet.cell(j, i).ctype == 2:  # ctype = 2 is number
             # not extract total cell value
             if not('Total' in sheet.cell_value(j, 2) or
-                   'Total' in sheet.cell_value(j, 1)):
+                   'Total' in sheet.cell_value(j, 1) or
+                   'Total' in sheet.cell_value(1, i)):
                 data.append(sheet.cell(j, i).value)
         # add a data row into data list
         if j == sheet.nrows - 2 and len(data) > 0:
@@ -84,14 +85,16 @@ db_obj.non_select_query(sql)
 rows = visitor_df.iterrows()
 for row in rows:
     for idx in range(0, row[1].size):
-        date = '2016-02'
+        date = report_month
         area = row[1].index[idx]
         reason = row[0]
         value = row[1][idx]
         insert_record(date, area, reason, value)
 
-sql = 'SELECT COUNT(*) FROM tw_visitor'
+print('Finish insert ' + date + ' visitor data!')
+"""
+sql = 'SELECT COUNT(*) FROM TW_VISITOR'
 for row in db_obj.select_query(sql):
     print(row)
-
+"""
 db_obj.db_close()
