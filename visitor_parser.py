@@ -10,7 +10,8 @@ from db_object import SqliteDBObject
 
 
 def insert_record(date, area, reason, value):
-    sql = "INSERT INTO tw_visitor VALUES ('{0}', '{1}', '{2}', {3})"
+    sql = """INSERT INTO VISITORS_VISITOR(REPORT_MONTH, AREA, REASON, VISITOR_NUM)
+             VALUES ('{0}', '{1}', '{2}', {3})"""
     sql = sql.format(date, area, reason, value)
     db_obj.non_select_query(sql)
 
@@ -29,7 +30,7 @@ month = int(m.group(2))
 report_month = str(year) + '-' + (str(month) if month-10 >= 0 else '0' + str(month))
 
 # Check whether this month data exist in table or not
-sql = 'SELECT DISTINCT REPORT_MONTH FROM TW_VISITOR'
+sql = 'SELECT DISTINCT REPORT_MONTH FROM VISITORS_VISITOR'
 exist_month = [month[0] for month in db_obj.select_query(sql)]
 if report_month in exist_month:
     print('This month had already extracted!')
@@ -81,7 +82,10 @@ sql = '''CREATE TABLE tw_visitor
              (report_month text, area text, reason text, value real)'''
 db_obj.non_select_query(sql)
 """
-
+"""
+sql = 'delete from visitors_visitor'
+db_obj.non_select_query(sql)
+"""
 rows = visitor_df.iterrows()
 for row in rows:
     for idx in range(0, row[1].size):
