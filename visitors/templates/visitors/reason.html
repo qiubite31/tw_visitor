@@ -1,0 +1,17 @@
+{% if visitor_reasons_distinct and month %}
+    <h1> {{ month }} </h1>
+    <ul>
+    {% for reason in visitor_reasons_distinct %}
+        <!-- 可以直接加在visitors後面
+        <li><a href='{{reason}}/'>{{ reason }}</a></li>
+        --> 
+        <!-- 可以直接從visitors重寫
+        <li><a href="/visitors/{{month}}/{{reason}}/">{{ reason }}</a></li>
+        -->
+        <!-- 可以抓url的設定，再給參數(用空白隔開多個參數)-->
+        <li><a href="{% url 'visitors:detail' month reason %}">{{ reason }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No reasons are available.</p>
+{% endif %}

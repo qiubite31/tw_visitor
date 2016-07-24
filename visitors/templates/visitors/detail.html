@@ -1,0 +1,10 @@
+{% if visitor_record_by_reason and month %}
+    <h1> {{ month }} </h1>
+    <ul>
+    {% for visitor in visitor_record_by_reason %}
+        <li>{{ visitor.reason }} {{ visitor.area }} {{ visitor.visitor_num}}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No visitors are available.</p>
+{% endif %}
