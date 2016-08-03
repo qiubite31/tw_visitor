@@ -10,15 +10,17 @@ from db_object import SqliteDBObject
 
 
 def insert_record(date, area, reason, value):
-    sql = """INSERT INTO VISITORS_VISITOR(REPORT_MONTH, AREA, REASON, VISITOR_NUM)
-             VALUES ('{0}', '{1}', '{2}', {3})"""
+    sql = (
+        "INSERT INTO VISITORS_VISITOR(REPORT_MONTH, AREA, REASON, VISITOR_NUM)"
+        "VALUES ('{0}', '{1}', '{2}', {3})"
+        )
     sql = sql.format(date, area, reason, value)
     db_obj.non_select_query(sql)
 
 db_obj = SqliteDBObject('tw_visitor.db')
 
 # Open tw visitor xls report
-xls_path = 'visitor_data/201603.xls'
+xls_path = 'visitor_data/201605.xls'
 wb = open_workbook(xls_path, formatting_info=True)
 sheet = wb.sheet_by_name('Sheet3')
 
@@ -27,15 +29,16 @@ report_title = sheet.cell_value(0, 0)
 m = re.search(r'(\d{3})年(\d{1,2})月', report_title)
 year = int(m.group(1)) + 1911
 month = int(m.group(2))
-report_month = str(year) + '-' + (str(month) if month-10 >= 0 else '0' + str(month))
+report_month = (
+    str(year) + '-' + (str(month) if month-10 >= 0 else '0' + str(month))
+    )
 
-# Check whether this month data exist in table or not
-sql = 'SELECT DISTINCT REPORT_MONTH FROM VISITORS_VISITOR'
-exist_month = [month[0] for month in db_obj.select_query(sql)]
-if report_month in exist_month:
-    print('This month had already extracted!')
-    # db_obj.db_close()
-    # sys.exit()
+# Delete the report_month record before insert data
+sql = (
+    "DELETE FROM VISITORS_VISITOR"
+    " WHERE REPORT_MONTH = '{0}'".format(report_month)
+    )
+db_obj.non_select_query(sql)
 
 # Read Column Title
 visitor_reason = []
@@ -76,16 +79,6 @@ for i in range(0, 14):  # sheet.ncols有時會到14有時讀到15
 
 visitor_df = pd.DataFrame(data_list, visitor_reason, visitor_area,)
 
-"""
-# create table
-sql = '''CREATE TABLE tw_visitor
-             (report_month text, area text, reason text, value real)'''
-db_obj.non_select_query(sql)
-"""
-"""
-sql = 'delete from visitors_visitor'
-db_obj.non_select_query(sql)
-"""
 rows = visitor_df.iterrows()
 for row in rows:
     for idx in range(0, row[1].size):
@@ -96,9 +89,4 @@ for row in rows:
         insert_record(date, area, reason, value)
 
 print('Finish insert ' + date + ' visitor data!')
-"""
-sql = 'SELECT COUNT(*) FROM TW_VISITOR'
-for row in db_obj.select_query(sql):
-    print(row)
-"""
 db_obj.db_close()
