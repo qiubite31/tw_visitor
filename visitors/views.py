@@ -1,42 +1,70 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from .models import Visitor
+from django.db.models import Q
 from pylab import figure, axes, pie, title
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 
+def show_area_data(request, area):
+    from bokeh.charts import Line
+    from bokeh.embed import components
+    import pandas as pd
+    visitor_datas = Visitor.objects.values('area')
+    areas = set()
+    for visitor_data in visitor_datas:
+        areas.add(visitor_data['area'])
+
+    visitors_data_by_area = Visitor.objects.filter(area=area, reason='觀光 Pleasure').exclude(Q(reason='男 Male') | Q(reason='女 Female')).order_by('report_month').values()
+    visitor_df = pd.DataFrame.from_records(visitors_data_by_area)
+
+    line = Line(visitor_df,
+                x='report_month', y='visitor_num',
+                ylabel='每月拜訪人次', xlabel='月份'
+                )
+    line.title = area + ' 地區來台觀光人次'
+    script, div = components(line)
+    context = {
+        'areas': areas,
+        'script': script,
+        'div': div
+    }
+    return render(request, 'visitors/bokeh.html', context)
+
+
 def boken_test(request, month):
-    from bokeh.plotting import figure, output_file, show, save
-
-    # prepare some data
-    x = [1, 2, 3, 4, 5]
-    y = [6, 7, 2, 4, 5]
-
-    # output to static HTML file
-    output_file("visitors/static/visitors/bokeh_chart/lines.html")
-
-    # create a new plot with a title and axis labels
-    p = figure(title="simple line example", x_axis_label='x', y_axis_label='y')
-
-    # add a line renderer with legend and line thickness
-    p.line(x, y, legend="Temp.", line_width=2)
-
-    # show the results
-    save(p)
-    # return response
-
+    from bokeh.charts import Line, Bar, output_file, show, hplot
     from bokeh.plotting import figure
     from bokeh.embed import components
+    from bokeh.models import OpenURL
+    import pandas as pd
+    import numpy as np
 
-    plot = figure()
-    plot.circle([1, 2], [3, 4])
+    from bokeh.models.widgets import Slider, Panel, Tabs, RadioButtonGroup
+    from bokeh.io import vform
+    radio_button_group = RadioButtonGroup(
+        labels=["觀光 Pleasure", "會議 Conference", "Option 3"], active=1)
 
-    script, div = components(plot)
+    # output_file("layout_widgets.html") , reason='觀光 Pleasure'
+    visitors_data = Visitor.objects.filter(area='日本 Japan').exclude(Q(reason='男 Male') | Q(reason='女 Female')).order_by('report_month').values()
+    visitor_df = pd.DataFrame.from_records(visitors_data)
+    print(visitor_df)
+    plot = Bar(visitor_df, 'reason', values='visitor_num', title='china visitor trend', group='report_month', legend='top_right')
+    new_visitor_df = visitor_df.loc[visitor_df['reason'] == radio_button_group.labels[radio_button_group.active]]
+    print(new_visitor_df)
+    line = Line(new_visitor_df,
+                x='report_month', y='visitor_num',
+                ylabel='每月拜訪人次', xlabel='月份'
+                )
+    line.title = '日本地區來台觀光人次'
+    # , plot_width=500, plot_height=400
+    # plot.responsive = True
+    layout = hplot(radio_button_group, line)
+    script, div = components(layout)
     context = {
         'script': script,
         'div': div
     }
-    save(plot)
     return render(request, 'visitors/bokeh.html', context)
 
 
