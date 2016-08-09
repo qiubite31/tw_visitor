@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
-from .models import Visitor
+from .models import ArrivalRecord
 from django.db.models import Q
 from pylab import figure, axes, pie, title
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -10,12 +10,13 @@ def show_area_data(request, area):
     from bokeh.charts import Line
     from bokeh.embed import components
     import pandas as pd
-    visitor_datas = Visitor.objects.values('area')
+    visitor_datas = ArrivalRecord.objects.values('area_cht')
     areas = set()
     for visitor_data in visitor_datas:
-        areas.add(visitor_data['area'])
+        areas.add(visitor_data['area_cht'])
 
-    visitors_data_by_area = Visitor.objects.filter(area=area, reason='觀光 Pleasure').exclude(Q(reason='男 Male') | Q(reason='女 Female')).order_by('report_month').values()
+    # visitors_data_by_area = ArrivalRecord.objects.filter(area_cht=area, purpose_cht='Pleasure').exclude(Q(purpose_cht='男') | Q(purpose_cht='女')).order_by('report_month').values()
+    visitors_data_by_area = ArrivalRecord.objects.filter(area_cht=area, purpose_cht='觀光').order_by('report_month').values()
     visitor_df = pd.DataFrame.from_records(visitors_data_by_area)
 
     line = Line(visitor_df,
@@ -24,6 +25,7 @@ def show_area_data(request, area):
                 )
     line.title = area + ' 地區來台觀光人次'
     script, div = components(line)
+
     context = {
         'areas': areas,
         'script': script,

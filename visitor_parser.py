@@ -9,12 +9,12 @@ import pandas as pd
 from db_object import SqliteDBObject
 
 
-def insert_record(date, area, reason, value):
+def insert_record(month, continent, area_cht, area_eng, purpose_cht, purpose_eng, value):
     sql = (
-        "INSERT INTO VISITORS_VISITOR(REPORT_MONTH, AREA, REASON, VISITOR_NUM)"
-        "VALUES ('{0}', '{1}', '{2}', {3})"
+        "INSERT INTO VISITORS_ARRIVALRECORD(REPORT_MONTH, CONTINENT, AREA_CHT, AREA_ENG, PURPOSE_CHT, PURPOSE_ENG, VISITOR_NUM)"
+        "VALUES ('{month}', '{continent}', '{area_cht}', '{area_eng}', '{purpose_cht}', '{purpose_eng}', {value})"
         )
-    sql = sql.format(date, area, reason, value)
+    sql = sql.format(**locals())
     db_obj.non_select_query(sql)
 
 db_obj = SqliteDBObject('tw_visitor.db')
@@ -35,7 +35,7 @@ report_month = (
 
 # Delete the report_month record before insert data
 sql = (
-    "DELETE FROM VISITORS_VISITOR"
+    "DELETE FROM VISITORS_ARRIVALRECORD"
     " WHERE REPORT_MONTH = '{0}'".format(report_month)
     )
 db_obj.non_select_query(sql)
@@ -50,30 +50,38 @@ for i in range(0, sheet.ncols):
         visitor_reason.append(cell_value.replace('\n', ' '))
 
 visitor_area = []
-for i in range(0, sheet.nrows):
+continent_mapping = {}
+continent = 'Default'
+for i in range(2, sheet.nrows):  # 跳過標題列，從第2列開始
     cell_value = sheet.cell(i, 1).value
-    # Total row not extract
+
+    if not sheet.cell(i, 0).value == '':  # 判斷非空字串來改換成新的洲
+        continent = sheet.cell(i, 0).value
+
+    # 不擷取Total加總
     if 'Total' in cell_value or 'Total' in sheet.cell_value(i, 2):
         continue
-    # Merge Cell should shift column
+    # 東南亞地區有合併欄續，需shift欄位判斷
     if '東南亞地區' in cell_value or cell_value == '':
         cell_value_shift = sheet.cell_value(i, 2)
         if not cell_value_shift == '':
             visitor_area.append(cell_value_shift)
+            continent_mapping[cell_value_shift] = continent
     else:
         visitor_area.append(cell_value)
+        continent_mapping[cell_value] = continent
 
 data_list = []
 for i in range(0, 14):  # sheet.ncols有時會到14有時讀到15
     data = []
     for j in range(0, sheet.nrows-1):
         if sheet.cell(j, i).ctype == 2:  # ctype = 2 is number
-            # not extract total cell value
+            # 不擷取Total加總
             if not('Total' in sheet.cell_value(j, 2) or
                    'Total' in sheet.cell_value(j, 1) or
                    'Total' in sheet.cell_value(1, i)):
                 data.append(sheet.cell(j, i).value)
-        # add a data row into data list
+        # 整個row資料讀完，加入list
         if j == sheet.nrows - 2 and len(data) > 0:
             data_list.append(data)
 
@@ -82,11 +90,15 @@ visitor_df = pd.DataFrame(data_list, visitor_reason, visitor_area,)
 rows = visitor_df.iterrows()
 for row in rows:
     for idx in range(0, row[1].size):
-        date = report_month
+        month = report_month
         area = row[1].index[idx]
-        reason = row[0]
+        continent = continent_mapping[area]
+        area_cht = area[0:area.index(' ')]
+        area_eng = area[area.index(' ')+1:]
+        purpose_cht = row[0][0:row[0].index(' ')]
+        purpose_eng = row[0][row[0].index(' ')+1:]
         value = row[1][idx]
-        insert_record(date, area, reason, value)
+        insert_record(month, continent, area_cht, area_eng, purpose_cht, purpose_eng, value)
 
-print('Finish insert ' + date + ' visitor data!')
+print('Finish insert ' + month + ' visitor data!')
 db_obj.db_close()

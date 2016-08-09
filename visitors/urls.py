@@ -5,7 +5,7 @@ from . import views
 app_name = 'visitors'
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^(?P<area>\w+ \w+( \w+)?)/$', views.show_area_data, name='show_area_data'),
+    url(r'^(?P<area>\w+)/$', views.show_area_data, name='show_area_data'),
     url(r'^(?P<month>[0-9]{4}-[0-9]{2})/results/result.png$', views.plotResults, name='plotResult'),
     url(r'^(?P<month>[0-9]{4}-[0-9]{2})/bokeh/$', views.boken_test, name='plotResult'),
     url(r'^(?P<visitor_id>[0-9]+)/$', views.get_visitor, name='visitor'),
