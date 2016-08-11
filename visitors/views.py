@@ -1,9 +1,35 @@
+# encoding=utf-8
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from .models import ArrivalRecord
 from django.db.models import Q
 from pylab import figure, axes, pie, title
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+
+def show_highchart(request):
+    return render(request, 'visitors/highchart.html', {'status': 'ok'})
+
+
+def get_area_data(request, area):
+    import json
+    visitors_data_by_area = ArrivalRecord.objects.filter(area_cht=area, purpose_cht='觀光').order_by('report_month').values()
+
+    data_list = []
+    categories = []
+    for visitor_data in visitors_data_by_area:
+        categories.append(visitor_data['report_month'])
+        data_list.append(visitor_data['visitor_num'])
+
+    json_obj = {}
+    series = []
+    series.append({'name': '日本', 'data': data_list})  # , 'categories': categories}
+    json_obj['series'] = series
+    json_obj['categories'] = categories
+    # json_obj.append(data_dict)
+    print('日本')
+    print(json.dumps(json_obj, indent=4))
+    return HttpResponse(json.dumps(json_obj))
 
 
 def show_area_data(request, area):

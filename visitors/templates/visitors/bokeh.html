@@ -1,3 +1,4 @@
+{% load staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -9,28 +10,18 @@
         <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.11.1.min.js"></script>
         <script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.11.1.min.js" type="text/javascript"></script>
         <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
-
+        <script src="https://code.highcharts.com/highcharts.js"></script>
+        <script src="https://code.highcharts.com/modules/exporting.js"></script>
+        <script src="{% static 'visitors/bokeh_app.js' %}"></script>
+        <!-- COPY/PASTE SCRIPT HERE -->
+	    {{script|safe}}
+    </head>
+    <body>
         <select class="visitor_area">
         {% for area in areas %}
             <option value="{{ area }}">{{ area }}</option>
         {% endfor %}  
         </select>
-        
-        <!-- COPY/PASTE SCRIPT HERE -->
-	    {{script|safe}}
-        <script>
-            var main = function() {
-                $(".visitor_area").change(function(){
-                    alert($(".visitor_area").val())
-                    window.location.href = "http://localhost:8000/visitors/" + $(".visitor_area").val();
-                });
-            }
-
-            $(document).ready(main);
-        </script>
-
-    </head>
-    <body>
         <!-- INSERT DIVS HERE -->
         {{div|safe}}
     </body>
