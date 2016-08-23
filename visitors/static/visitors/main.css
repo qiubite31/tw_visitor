@@ -1,0 +1,30 @@
+#header nav {
+    height: 5em;
+    width: 100%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border-bottom: 2px black solid;
+}
+li {
+    display: inline-block;
+    width: 7em;
+    height: 5em;
+    border-bottom: 2px white solid;
+    
+
+}
+li.active {
+    border-top: 2px black solid;
+    border-left: 2px black solid;
+    border-right: 2px black solid;
+}
+li:hover {
+    cursor: pointer;
+}
+li a {
+    font-size: 1.5em;
+    font-family: 微軟正黑體, Arial, Helvetica, sans-serif;
+    line-height: 2.7em;
+    padding-left: 1.3em;
+    
+}
