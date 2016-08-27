@@ -1,35 +1,38 @@
 var main = function() {
-$('.purpose ul').children().click(function() {
-        var purpose = $(this).children('a').attr('data-purpose')
-        var area = 'All'
-        console.log(purpose)
-
-        var showData = function() {
+    var getVisitorData = function(purpose, area) {
+        var showVisitorData = function() {
             $('#container').highcharts({
-                xAxis: {
-                    categories: new_array.responseJSON.categories
-                },
-                series: new_array.responseJSON.series,
-                title: {
-                    text: '來臺旅客目的統計(按月分)',
-                    x: -20 //center
-                }
-            });
-            //console.log(new_array)
-            //console.log($('#container').highcharts())
-            //console.log(obj)
+                    xAxis: {
+                        categories: visitorsArray.responseJSON.categories
+                    },
+                    series: visitorsArray.responseJSON.series,
+                    title: {
+                        text: '來臺旅客目的統計(按月分)',
+                        x: -20 //center
+                    }
+                });
         }
-        var url = 'http://localhost:8000/visitors/highchart/' + purpose + '/All'
-        var new_array = 
-        $.get({
-            dataType: "json",
-            url: url,
-            success: showData
-        });
+        var url = 'http://localhost:8000/visitors/highchart/' + purpose + '/' + area
+        console.log(url)
+        var visitorsArray = $.get({
+                                dataType: "json",
+                                url: url,
+                                success: showVisitorData
+                            });
 
+    }
 
+    $('.purpose ul').children().click(function() {
+            var purpose = $(this).children('a').attr('data-purpose');
+            var area = $('.area ul').children('.active').children('a').attr('data-purpose');
+            getVisitorData(purpose, area);
+            });
+    $('.area ul').children().click(function() {
+            var purpose = $('.area ul').children('.active').children('a').attr('data-purpose');
+            var area = $(this).children('a').attr('data-purpose');
+            getVisitorData(purpose, area);
+            });
 
-    });
     $("#chartCTR").click(function() {
         var setting = function() {
             console.log('success')
