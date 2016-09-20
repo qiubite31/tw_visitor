@@ -2,6 +2,7 @@
 import sys
 import os
 import re
+import pdb
 import sqlite3
 from xlrd import open_workbook
 # from xlrd.sheet import ctype_text
@@ -9,9 +10,11 @@ import pandas as pd
 from db_object import SqliteDBObject
 
 
-def insert_record(month, continent, area_cht, area_eng, purpose_cht, purpose_eng, value):
+def insert_record(month, continent, area_cht, area_eng,
+                  purpose_cht, purpose_eng, value):
     sql = (
-        "INSERT INTO VISITORS_ARRIVALRECORD(REPORT_MONTH, CONTINENT, AREA_CHT, AREA_ENG, PURPOSE_CHT, PURPOSE_ENG, VISITOR_NUM)"
+        "INSERT INTO VISITORS_ARRIVALRECORD(REPORT_MONTH, CONTINENT, AREA_CHT,"
+        "            AREA_ENG, PURPOSE_CHT, PURPOSE_ENG, VISITOR_NUM)"
         "VALUES ('{month}', '{continent}', '{area_cht}', '{area_eng}', '{purpose_cht}', '{purpose_eng}', {value})"
         )
     sql = sql.format(**locals())
@@ -20,7 +23,7 @@ def insert_record(month, continent, area_cht, area_eng, purpose_cht, purpose_eng
 db_obj = SqliteDBObject('tw_visitor.db')
 
 # Open tw visitor xls report
-xls_path = 'visitor_data/201605.xls'
+xls_path = 'visitor_data/201608.xls'
 wb = open_workbook(xls_path, formatting_info=True)
 sheet = wb.sheet_by_name('Sheet3')
 
@@ -36,9 +39,10 @@ report_month = (
 # Delete the report_month record before insert data
 sql = (
     "DELETE FROM VISITORS_ARRIVALRECORD"
-    " WHERE REPORT_MONTH = '{0}'".format(report_month)
+    " WHERE REPORT_MONTH = ?"
     )
-db_obj.non_select_query(sql)
+db_obj.non_select_query(sql, (report_month,), print_sql=True)
+# pdb.set_trace()
 
 # Read Column Title
 visitor_reason = []
