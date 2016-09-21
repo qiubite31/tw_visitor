@@ -1,3 +1,6 @@
+body {
+    background-color: #F7F7F7;
+}
 #header nav {
     height: 5em;
     width: 100%;
@@ -23,19 +26,28 @@ li:hover {
 }
 li a {
     font-size: 1.5em;
-    font-family: 微軟正黑體, Arial, Helvetica, sans-serif;
+    font-family: "Helvetica Neue", Roboto, Arial, "Droid Sans", sans-serif;
+    /*font-family: 微軟正黑體, Arial, Helvetica, sans-serif;*/
     line-height: 2.7em;
     padding-left: 1.3em;
     
 }
 
 .panel-block {
-    border: 1px solid #000000;
+    border: 1px solid #E6E9ED;
+    background-color: #FFFFFF;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+    
+
 }
 .chart-option {
     height: 3em;
-    border-bottom: 1px solid black;
+    border-bottom: 2px solid #E6E9ED;
+    padding: 1px 5px 6px;
+    margin-bottom: 10px;
 }
 #chart-container {
-    margin: 1em;
+    /*margin: 1em;*/
 }

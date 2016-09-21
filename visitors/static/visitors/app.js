@@ -39,11 +39,31 @@ var main = function() {
         var setting = function() {
             console.log('success')
             $('#chart-container').highcharts({
+                chart: {
+                    type: 'area'
+                },
                 xAxis: {
                     categories: new_array.responseJSON.categories
                 },
                 series: new_array.responseJSON.series,
-                title: new_array.responseJSON.title
+                title: new_array.responseJSON.title,
+                credits: false,
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'middle',
+                    borderWidth: 0,
+                    itemMarginBottom: 5,
+                    itemStyle: {
+                        fontSize: '14px',
+                        fontFamily: "Helvetica Neue"
+                    }
+                },
+                plotOptions: {
+                    series: {
+                        fillOpacity: 0.2
+                    }
+                },
             });
         }
         var url = 'http://localhost:8000/visitors/api/' + purpose + '/' + area + '/'
