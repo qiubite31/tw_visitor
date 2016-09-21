@@ -5,13 +5,8 @@ from . import views
 app_name = 'visitors'
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^highchart$', views.show_highchart, name='show_highchart'),
-    url(r'^highchart/(?P<purpose>\w+( \w+)?)/(?P<area>\w+(.\w+)?)/$', views.get_visitor_data, name='get_visitor_data'),
-    url(r'^highchart/(?P<area>\w+(.\w+)?)/$', views.get_area_data, name='get_area_data'),
+    # url(r'^highchart/(?P<purpose>\w+( \w+)?)/(?P<area>\w+(.\w+)?)/$', views.get_visitor_data, name='get_visitor_data'),
+    url(r'^api/(?P<purpose>\w+)/(?P<area>\w+(.\w+)?)/$', views.get_area_data, name='get_area_data'),
+    # url(r'^highchart/api/get_country/continent/(?P<continent>\w+)/$', views.get_country, name="get_country")
     # url(r'^(?P<area>\w+(.\w+)?)/$', views.show_area_data, name='show_area_data'),
-    # url(r'^(?P<month>[0-9]{4}-[0-9]{2})/results/result.png$', views.plotResults, name='plotResult'),
-    # url(r'^(?P<month>[0-9]{4}-[0-9]{2})/bokeh/$', views.boken_test, name='plotResult'),
-    # url(r'^(?P<visitor_id>[0-9]+)/$', views.get_visitor, name='visitor'),
-    # url(r'^(?P<month>[0-9]{4}-[0-9]{2})/$', views.visitor_reason, name='reason'),
-    # url(r'^(?P<month>[0-9]{4}-[0-9]{2})/(?P<reason>\w+ \w+( \w+)?)/$', views.visitor_detail, name='detail')
 ]
