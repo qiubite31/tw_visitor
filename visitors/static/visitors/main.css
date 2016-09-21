@@ -28,3 +28,14 @@ li a {
     padding-left: 1.3em;
     
 }
+
+.panel-block {
+    border: 1px solid #000000;
+}
+.chart-option {
+    height: 3em;
+    border-bottom: 1px solid black;
+}
+#chart-container {
+    margin: 1em;
+}

@@ -1,1 +1,89 @@
-Hello, world. You're at the visitors index.
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Taiwan Visitors by Area</title>
+
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="https://code.highcharts.com/highcharts.js"></script>
+        <script src="https://code.highcharts.com/modules/exporting.js"></script>
+        <script src="{% static 'visitors/highchart_app.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'visitors/main.css' %}">
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    </head>
+    <body>
+        <header id="header">
+            <nav class="purpose">
+                <ul>
+                    <li><a href="#" data-purpose="All">全部</a></li>
+                    <li class="active"><a href="#" data-purpose="Pleasure">觀光</a></li>
+                    <li><a href="#" data-purpose="Business">業務</a></li>
+                    <li><a href="#" data-purpose="Visit Relatives">探親</a></li>
+                    <li><a href="#" data-purpose="Conference">會議</a></li>
+                    <li><a href="#" data-purpose="Study">求學</a></li>
+                    <li><a href="#" data-purpose="Exhibition">展覽</a></li>
+                    <li><a href="#" data-purpose="Medical Treatment">醫療</a></li>
+                    <li><a href="#" data-purpose="Others">其它</a></li>
+                </ul>
+            </nav>
+            <nav class="area">
+                <ul class="continent">
+                    <li class="active"><a href="#" data-purpose="All">全部</a></li>
+                    <li>
+                        <a href="#" data-purpose="亞洲地區">亞洲</a>
+                        <!--<ul cass="country">
+                            <li><a href="#" data-purpose="Mandland China">中國</a></li>
+                        </ul>-->
+                    </li>
+                    <li><a href="#" data-purpose="美洲地區">美洲</a></li>
+                    <li><a href="#" data-purpose="歐洲地區">歐洲</a></li>
+                    <li><a href="#" data-purpose="大洋洲">大洋洲</a></li>
+                    <li><a href="#" data-purpose="非洲地區">非洲</a></li>
+                </ul>                
+            </nav>
+            <nav class="area">
+                <ul class="country">
+                    
+                </ul>
+            </nav>   
+        </header>
+        <section class="col-lg-6 col-xs-12 col-sm-12">
+            <div class="panel-block">
+                <div class='chart-option'>
+                    <span>來臺目的: </span>
+                    <select class="purpose">
+                        <option value="觀光">觀光</option>
+                        <option value="業務">業務</option>
+                        <option value="探親">探親</option>
+                        <option value="會議">會議</option>
+                        <option value="求學">求學</option>
+                        <option value="展覽">展覽</option>
+                        <option value="醫療">醫療</option>
+                        <option value="其它">其它</option>
+                    </select>
+                    <span>旅客地區: </span>
+                    <select class="area">
+                        <option value="大陸">大陸</option>
+                        <option value="日本">日本</option>
+                        <option value="香港.澳門">香港.澳門</option>
+                        <option value="韓國">韓國</option>
+                        <option value="美國">美國</option>
+                        <option value="馬來西亞">馬來西亞</option>
+                        <option value="新加坡">新加坡</option>
+                        <option value="印尼">印尼</option>
+                    </select>
+                    <button id="chartCTR">change</button>
+                </div>
+                <div id="chart-container"></div>
+            </div>
+            
+        </section>
+
+    </body>
+</html>
+
+
+
