@@ -4,6 +4,8 @@ from django.http import HttpResponse
 from .models import ArrivalRecord
 from django.db.models import Q
 import numpy as np
+import json
+from django.db.models import Sum
 
 
 def index(request):
@@ -27,27 +29,39 @@ def get_country(request, continent):
     return HttpResponse(context)
 
 
-def get_area_data(request, purpose, area):
-    import json
-    from django.db.models import Sum
-    visitors_data_by_area = ArrivalRecord.objects.filter(area_cht=area, purpose_cht=purpose).order_by('report_month').values()
-    visitors_sum_data = ArrivalRecord.objects.filter(purpose_cht=purpose).order_by('report_month').values('report_month')
-    visitors_sum_data = visitors_sum_data.annotate(Sum('visitor_num'))
+def get_detail_visitor_data(request, purpose, area):
+    # retrieve the certain purpose data
+    visitors_purpose = (ArrivalRecord.objects
+                        .filter(purpose_cht=purpose)
+                        .order_by('report_month')
+                        .values('report_month', 'visitor_num',
+                                'purpose_cht', 'area_cht')
+                        )
+    # Filter by area
+    visitors_purpose_by_area = visitors_purpose.filter(area_cht=area)
+    # Sum by month
+    visitors_purpose_sum = (visitors_purpose
+                            .values('report_month')
+                            .annotate(Sum('visitor_num'))
+                            )
 
     data_list = []
     categories = []
-    for visitor_data in visitors_data_by_area:
+    for visitor_data in visitors_purpose_by_area:
         categories.append(visitor_data['report_month'])
         data_list.append(visitor_data['visitor_num'])
 
     json_obj = {}
     series = []
     series.append({'name': area, 'data': data_list})
-    series.append({'name': '全部', 'data': [data['visitor_num__sum'] for data in visitors_sum_data]})
+    series.append({'name': '全部',
+                   'data': [data['visitor_num__sum']
+                            for data in visitors_purpose_sum]})
+
     json_obj['series'] = series
     json_obj['categories'] = categories
-    json_obj['title'] = ({'text': '2016' + area + '地區來臺' + purpose + '旅客人數', 'x': -150})
-    # json_obj.append(data_dict)
-    # print('大陸')
-    # print(json.dumps(json_obj, indent=4))
+    json_obj['title'] = ({'text': '2016' + area + '地區來臺' + purpose + '旅客人數',
+                          'x': -150,
+                          'fontFamily': 'Helvetica Neue'})
+
     return HttpResponse(json.dumps(json_obj))
