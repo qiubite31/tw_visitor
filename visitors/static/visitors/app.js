@@ -64,6 +64,16 @@ var main = function() {
                         fillOpacity: 0.2
                     }
                 },
+                exporting: {
+                    buttons: {
+                        customButton: {
+                            text: 'Custom Button',
+                            onclick: function () {
+                                alert('You pressed the button!');
+                            }
+                        }
+                    }
+                }
             });
         }
         var url = 'http://localhost:8000/visitors/api/' + purpose + '/' + area + '/'
