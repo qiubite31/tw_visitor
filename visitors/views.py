@@ -37,23 +37,45 @@ def get_detail_visitor_data(request, purpose, area):
                         .values('report_month', 'visitor_num',
                                 'purpose_cht', 'area_cht')
                         )
-    # Filter by area
-    visitors_purpose_by_area = visitors_purpose.filter(area_cht=area)
+    if not area == '前十地區':
+        visitors_purpose_by_area = visitors_purpose.filter(area_cht=area)
+        data_dict = {}
+        categories = []
+        for visitor_data in visitors_purpose_by_area:
+            data_dict.setdefault(area, []).append(visitor_data['visitor_num'])
+            categories.append(visitor_data['report_month'])
+            # data_list.append(visitor_data['visitor_num'])
+
+    else:
+        visitors_area_sum = (visitors_purpose
+                             .values('area_cht')
+                             .annotate(Sum('visitor_num'))
+                             .order_by('-visitor_num__sum')
+                             )
+        area_top10 = []
+        for idx, data in enumerate(visitors_area_sum):
+            if idx > 4:
+                break
+            area_top10.append(data['area_cht'])
+
+        visitors_purpose_by_area_top10 = visitors_purpose.filter(area_cht__in=area_top10)
+        data_dict = {}
+        categories = []
+        for visitor_data in visitors_purpose_by_area_top10:
+            categories.append(visitor_data['report_month'])
+            data_dict.setdefault(visitor_data['area_cht'], []).append(visitor_data['visitor_num'])
+
     # Sum by month
     visitors_purpose_sum = (visitors_purpose
                             .values('report_month')
                             .annotate(Sum('visitor_num'))
                             )
 
-    data_list = []
-    categories = []
-    for visitor_data in visitors_purpose_by_area:
-        categories.append(visitor_data['report_month'])
-        data_list.append(visitor_data['visitor_num'])
-
     json_obj = {}
     series = []
-    series.append({'name': area, 'data': data_list})
+    for area, data_list in data_dict.items():
+        series.append({'name': area, 'data': data_list})
+    # series.append({'name': area, 'data': data_list})
     series.append({'name': '全部',
                    'data': [data['visitor_num__sum']
                             for data in visitors_purpose_sum]})
