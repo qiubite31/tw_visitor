@@ -38,6 +38,7 @@ var main = function() {
         area = $('.area option:selected').text()
         var setting = function() {
             console.log('success')
+            console.log(new_array)
             $('#chart-container').highcharts({
                 chart: {
                     type: 'area'
@@ -61,7 +62,8 @@ var main = function() {
                 },
                 plotOptions: {
                     series: {
-                        fillOpacity: 0.2
+                        fillOpacity: 0.7,
+                        //stacking: 'normal'
                     }
                 },
                 exporting: {
