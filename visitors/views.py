@@ -56,16 +56,16 @@ def get_detail_visitor_data(request, purpose, area):
             if idx > 4:
                 break
             area_top5.append(data['area_cht'])
-        # print(area_top10)
+
         visitors_purpose_by_area_top5 = visitors_purpose.filter(area_cht__in=area_top5)
         data_dict = OrderedDict()
-        categories = []
+        categories = set()
         for area_key in area_top5:
             data_dict[area_key] = []
 
         for visitor_data in visitors_purpose_by_area_top5:
-            # print(visitor_data['area_cht'])
-            categories.append(visitor_data['report_month'])
+
+            categories.add(visitor_data['report_month'])
             data_dict[visitor_data['area_cht']].append(visitor_data['visitor_num'])
 
     # Sum by month
@@ -88,7 +88,9 @@ def get_detail_visitor_data(request, purpose, area):
         title_area = area
     else:
         title_area = area + '地區'
-
+    categories = list(categories)
+    categories.sort()
+    print(categories)
     json_obj['series'] = series
     json_obj['categories'] = categories
     json_obj['title'] = ({'text': '2016' + title_area + '來臺' + purpose + '旅客人數',
