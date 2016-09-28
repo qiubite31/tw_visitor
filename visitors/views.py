@@ -36,17 +36,21 @@ def get_detail_visitor_data(request, purpose, area):
                                      )
         data_dict = OrderedDict()
         data_dict_year = OrderedDict()
+        # fetch monthly data
         for visitor in visitors_single_area:
             year = visitor['report_year']
-            month = (str(visitor['report_month']) if visitor['report_month']-10 >= 0
+            month = (str(visitor['report_month'])
+                     if visitor['report_month']-10 >= 0
                      else '0' + str(visitor['report_month']))
-            visitor_data = {str(year) + '-' + str(month): visitor['visitor_num']}
+            report_key = str(year) + '-' + str(month)
+            visitor_data = {report_key: visitor['visitor_num']}
             data_dict.setdefault(area, []).append(visitor_data)
-
+        # fetch yearly data
         for visitor in visitors_single_area_year:
             visitor_data = {visitor['report_year']: visitor['visitor_num__sum']}
             data_dict_year.setdefault(area, []).append(visitor_data)
     else:
+        # get the top 5 area list
         visitors_area_sum = (visitors
                              .values('area_cht')
                              .annotate(Sum('visitor_num'))
@@ -59,17 +63,31 @@ def get_detail_visitor_data(request, purpose, area):
             area_top5.append(data['area_cht'])
 
         visitors_top5_area = visitors.filter(area_cht__in=area_top5)
+        visitors_top5_area_year = (visitors
+                                   .filter(area_cht__in=area_top5)
+                                   .values('report_year', 'area_cht')
+                                   .annotate(Sum('visitor_num'))
+                                   .order_by('-visitor_num__sum'))
+
         data_dict = OrderedDict()
+        data_dict_year = OrderedDict()
         # initial dict by top5 sequence
         for area_key in area_top5:
             data_dict[area_key] = []
+            data_dict_year[area_key] = []
 
         for visitor in visitors_top5_area:
             year = visitor['report_year']
-            month = (str(visitor['report_month']) if visitor['report_month']-10 >= 0
+            month = (str(visitor['report_month'])
+                     if visitor['report_month']-10 >= 0
                      else '0' + str(visitor['report_month']))
-            visitor_data = {str(year) + '-' + str(month): visitor['visitor_num']}
+            report_key = str(year) + '-' + str(month)
+            visitor_data = {report_key: visitor['visitor_num']}
             data_dict[visitor['area_cht']].append(visitor_data)
+
+        for visitor in visitors_top5_area_year:
+            visitor_data = {visitor['report_year']: visitor['visitor_num__sum']}
+            data_dict_year[visitor['area_cht']].append(visitor_data)
 
     # month total
     visitors_month_sum = (ArrivalRecord.objects
@@ -95,20 +113,21 @@ def get_detail_visitor_data(request, purpose, area):
             categories = [list(value.keys())[0] for value in data_list]
 
         series.append({'name': area_key,
-                       'data': [list(value.values())[0] for value in data_list]})
+                       'data': [list(value.values())[0]
+                                for value in data_list]})
     series_year = []
     categories_year = []
     series_year.append({'name': '全部',
                         'data': [data['visitor_num__sum']
-                                for data in visitors_year_sum]})
-    print(data_dict_year)
-    print(data_dict)
+                                 for data in visitors_year_sum]})
+
     for area_key, data_list in data_dict_year.items():
-        if not categories:
-            categories = [list(value.keys())[0] for value in data_list]
+        if not categories_year:
+            categories_year = [list(value.keys())[0] for value in data_list]
 
         series_year.append({'name': area_key,
-                       'data': [list(value.values())[0] for value in data_list]})
+                            'data': [list(value.values())[0]
+                                     for value in data_list]})
 
     if area == '前五地區':
         title_area = area
