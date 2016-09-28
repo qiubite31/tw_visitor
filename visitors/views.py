@@ -13,40 +13,41 @@ def index(request):
     return render(request, 'visitors/index.html', {'status': 'ok'})
 
 
-def get_country(request, continent):
-    countrys = ArrivalRecord.objects.value('area_eng', 'area_cht')
-    print(continent)
-
-    country_dict = {}
-    for contry in countrys:
-        area_eng = country['area_eng']
-        area_cht = country['area_cht']
-        if area_eng not in country_dict:
-            country_dict[area_eng] = area_eng
-
-    context = {
-        'countrys': country_dict
-    }
-    return HttpResponse(context)
-
-
 def get_detail_visitor_data(request, purpose, area):
     # retrieve the certain purpose data
-    visitors_purpose = (ArrivalRecord.objects
-                        .filter(purpose_cht=purpose)
-                        .order_by('report_month')
-                        .values('report_month', 'visitor_num',
-                                'purpose_cht', 'area_cht')
-                        )
+    visitors_all = (ArrivalRecord.objects
+                    .order_by('report_year', 'report_month')
+                    .values('report_year', 'report_month', 'visitor_num',
+                            'purpose_cht', 'area_cht')
+                    )
+    visitors = visitors_all.filter(purpose_cht=purpose)
+
     if not area == '前五地區':
-        visitors_purpose_by_area = visitors_purpose.filter(area_cht=area)
-        data_dict = {}
-        categories = []
-        for visitor_data in visitors_purpose_by_area:
-            data_dict.setdefault(area, []).append(visitor_data['visitor_num'])
-            categories.append(visitor_data['report_month'])
+        visitors_single_area = (visitors
+                                .filter(area_cht=area)
+                                .values('report_year', 'report_month',
+                                        'visitor_num')
+                                )
+        visitors_single_area_year = (visitors
+                                     .filter(area_cht=area)
+                                     .values('report_year')
+                                     .annotate(Sum('visitor_num'))
+                                     .order_by('-visitor_num__sum')
+                                     )
+        data_dict = OrderedDict()
+        data_dict_year = OrderedDict()
+        for visitor in visitors_single_area:
+            year = visitor['report_year']
+            month = (str(visitor['report_month']) if visitor['report_month']-10 >= 0
+                     else '0' + str(visitor['report_month']))
+            visitor_data = {str(year) + '-' + str(month): visitor['visitor_num']}
+            data_dict.setdefault(area, []).append(visitor_data)
+
+        for visitor in visitors_single_area_year:
+            visitor_data = {visitor['report_year']: visitor['visitor_num__sum']}
+            data_dict_year.setdefault(area, []).append(visitor_data)
     else:
-        visitors_area_sum = (visitors_purpose
+        visitors_area_sum = (visitors
                              .values('area_cht')
                              .annotate(Sum('visitor_num'))
                              .order_by('-visitor_num__sum')
@@ -57,44 +58,69 @@ def get_detail_visitor_data(request, purpose, area):
                 break
             area_top5.append(data['area_cht'])
 
-        visitors_purpose_by_area_top5 = visitors_purpose.filter(area_cht__in=area_top5)
+        visitors_top5_area = visitors.filter(area_cht__in=area_top5)
         data_dict = OrderedDict()
-        categories = set()
+        # initial dict by top5 sequence
         for area_key in area_top5:
             data_dict[area_key] = []
 
-        for visitor_data in visitors_purpose_by_area_top5:
+        for visitor in visitors_top5_area:
+            year = visitor['report_year']
+            month = (str(visitor['report_month']) if visitor['report_month']-10 >= 0
+                     else '0' + str(visitor['report_month']))
+            visitor_data = {str(year) + '-' + str(month): visitor['visitor_num']}
+            data_dict[visitor['area_cht']].append(visitor_data)
 
-            categories.add(visitor_data['report_month'])
-            data_dict[visitor_data['area_cht']].append(visitor_data['visitor_num'])
-
-    # Sum by month
-    visitors_purpose_sum = (visitors_purpose
-                            .values('report_month')
-                            .annotate(Sum('visitor_num'))
-                            )
-
+    # month total
+    visitors_month_sum = (ArrivalRecord.objects
+                          .values('report_year', 'report_month')
+                          .filter(purpose_cht=purpose)
+                          .annotate(Sum('visitor_num'))
+                          )
+    # year total
+    visitors_year_sum = (ArrivalRecord.objects
+                         .values('report_year')
+                         .filter(purpose_cht=purpose)
+                         .annotate(Sum('visitor_num'))
+                         )
     json_obj = {}
     series = []
-
+    categories = []
     series.append({'name': '全部',
                    'data': [data['visitor_num__sum']
-                            for data in visitors_purpose_sum]})
+                            for data in visitors_month_sum]})
 
     for area_key, data_list in data_dict.items():
-        series.append({'name': area_key, 'data': data_list})
+        if not categories:
+            categories = [list(value.keys())[0] for value in data_list]
+
+        series.append({'name': area_key,
+                       'data': [list(value.values())[0] for value in data_list]})
+    series_year = []
+    categories_year = []
+    series_year.append({'name': '全部',
+                        'data': [data['visitor_num__sum']
+                                for data in visitors_year_sum]})
+    print(data_dict_year)
+    print(data_dict)
+    for area_key, data_list in data_dict_year.items():
+        if not categories:
+            categories = [list(value.keys())[0] for value in data_list]
+
+        series_year.append({'name': area_key,
+                       'data': [list(value.values())[0] for value in data_list]})
 
     if area == '前五地區':
         title_area = area
     else:
         title_area = area + '地區'
-    categories = list(categories)
-    categories.sort()
-    print(categories)
+
     json_obj['series'] = series
     json_obj['categories'] = categories
     json_obj['title'] = ({'text': '2016' + title_area + '來臺' + purpose + '旅客人數',
                           'x': -150,
                           'fontFamily': 'Helvetica Neue'})
+    json_obj['series_year'] = series_year
+    json_obj['categories_year'] = categories_year
     # print(json.dumps(json_obj))
     return HttpResponse(json.dumps(json_obj))
