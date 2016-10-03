@@ -10,12 +10,12 @@ import pandas as pd
 from db_object import SqliteDBObject
 
 
-def insert_record(month, continent, area_cht, area_eng,
+def insert_record(year, month, continent, area_cht, area_eng,
                   purpose_cht, purpose_eng, value):
     sql = (
-        "INSERT INTO VISITORS_ARRIVALRECORD(REPORT_MONTH, CONTINENT, AREA_CHT,"
+        "INSERT INTO VISITORS_ARRIVALRECORD(REPORT_YEAR, REPORT_MONTH, CONTINENT, AREA_CHT,"
         "            AREA_ENG, PURPOSE_CHT, PURPOSE_ENG, VISITOR_NUM)"
-        "VALUES ('{month}', '{continent}', '{area_cht}', '{area_eng}', '{purpose_cht}', '{purpose_eng}', {value})"
+        "VALUES ({year}, {month}, '{continent}', '{area_cht}', '{area_eng}', '{purpose_cht}', '{purpose_eng}', {value})"
         )
     sql = sql.format(**locals())
     db_obj.non_select_query(sql)
@@ -23,7 +23,7 @@ def insert_record(month, continent, area_cht, area_eng,
 db_obj = SqliteDBObject('tw_visitor.db')
 
 # Open tw visitor xls report
-xls_path = 'visitor_data/201608.xls'
+xls_path = 'visitor_data/201412.xls'
 wb = open_workbook(xls_path, formatting_info=True)
 sheet = wb.sheet_by_name('Sheet3')
 
@@ -39,9 +39,10 @@ report_month = (
 # Delete the report_month record before insert data
 sql = (
     "DELETE FROM VISITORS_ARRIVALRECORD"
-    " WHERE REPORT_MONTH = ?"
+    " WHERE REPORT_YEAR = ?"
+    "   AND REPORT_MONTH = ?"
     )
-db_obj.non_select_query(sql, (report_month,), print_sql=True)
+db_obj.non_select_query(sql, (year, month,), print_sql=False)
 # pdb.set_trace()
 
 # Read Column Title
@@ -94,7 +95,6 @@ visitor_df = pd.DataFrame(data_list, visitor_reason, visitor_area,)
 rows = visitor_df.iterrows()
 for row in rows:
     for idx in range(0, row[1].size):
-        month = report_month
         area = row[1].index[idx]
         continent = continent_mapping[area]
         area_cht = area[0:area.index(' ')]
@@ -102,7 +102,15 @@ for row in rows:
         purpose_cht = row[0][0:row[0].index(' ')]
         purpose_eng = row[0][row[0].index(' ')+1:]
         value = row[1][idx]
-        insert_record(month, continent, area_cht, area_eng, purpose_cht, purpose_eng, value)
+        insert_record(year, month, continent, area_cht, area_eng, purpose_cht, purpose_eng, value)
 
-print('Finish insert ' + month + ' visitor data!')
+print('Finish insert ' + report_month + ' visitor data!')
 db_obj.db_close()
+
+"""
+def main():
+    pass
+
+if(__name__ == 'main'):
+    main()
+"""
