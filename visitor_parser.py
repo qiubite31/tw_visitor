@@ -12,18 +12,19 @@ from db_object import SqliteDBObject
 
 def insert_record(year, month, continent, area_cht, area_eng,
                   purpose_cht, purpose_eng, value):
-    sql = (
-        "INSERT INTO VISITORS_ARRIVALRECORD(REPORT_YEAR, REPORT_MONTH, CONTINENT, AREA_CHT,"
-        "            AREA_ENG, PURPOSE_CHT, PURPOSE_ENG, VISITOR_NUM)"
-        "VALUES ({year}, {month}, '{continent}', '{area_cht}', '{area_eng}', '{purpose_cht}', '{purpose_eng}', {value})"
-        )
-    sql = sql.format(**locals())
-    db_obj.non_select_query(sql)
+    sql = '''
+    INSERT INTO VISITORS_ARRIVALRECORD(REPORT_YEAR, REPORT_MONTH, CONTINENT,
+                AREA_CHT, AREA_ENG, PURPOSE_CHT, PURPOSE_ENG, VISITOR_NUM)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
+
+    bind_var = (year, month, continent, area_cht, area_eng,
+                purpose_cht, purpose_eng, value)
+    db_obj.non_select_query(sql, bind_var=bind_var, print_sql=False)
 
 db_obj = SqliteDBObject('tw_visitor.db')
 
 # Open tw visitor xls report
-xls_path = 'visitor_data/201412.xls'
+xls_path = 'visitor_data/201401.xls'
 wb = open_workbook(xls_path, formatting_info=True)
 sheet = wb.sheet_by_name('Sheet3')
 
@@ -37,11 +38,11 @@ report_month = (
     )
 
 # Delete the report_month record before insert data
-sql = (
-    "DELETE FROM VISITORS_ARRIVALRECORD"
-    " WHERE REPORT_YEAR = ?"
-    "   AND REPORT_MONTH = ?"
-    )
+sql = '''
+DELETE FROM VISITORS_ARRIVALRECORD
+ WHERE REPORT_YEAR = ?
+   AND REPORT_MONTH = ?'''
+
 db_obj.non_select_query(sql, (year, month,), print_sql=False)
 # pdb.set_trace()
 
