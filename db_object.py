@@ -1,5 +1,6 @@
 # coding=UTF-8
 import sqlite3
+import re
 
 
 class SqliteDBObject:
@@ -10,30 +11,30 @@ class SqliteDBObject:
     def non_select_query(self, sql, bind_var=None, print_sql=False):
         if print_sql:
             self.print_sql_str(sql, bind_var)
-
-        if bind_var is None:
-            self.cursor.execute(sql)
-        else:
+        try:
             self.cursor.execute(sql, bind_var)
+        except ValueError as err:
+            self.cursor.execute(sql)
 
         self.conn.commit()
 
     def select_query(self, sql, bind_var=None, print_sql=False):
         if print_sql:
             self.print_sql_str(sql, bind_var)
-
-        if bind_var is None:
-            return self.cursor.execute(sql)
-        else:
-            return self.cursor.execute(sql, bind_var)
+        try:
+            self.cursor.execute(sql, bind_var)
+        except ValueError as err:
+            self.cursor.execute(sql)
 
     def print_sql_str(self, sql, bind_var):
-        if bind_var is None:
-            sql_str = sql
-        else:
+
+        try:
             bind_var = map(lambda var: "'" + var + "'" if isinstance(var, str)
                            else var, bind_var)
-            sql_str = sql.replace('?', '{}').format(*bind_var)
+            sql_str = re.sub('\?|:\d{1,2}', '{}', sql)
+            sql_str = sql_str.format(*bind_var)
+        except TypeError as err:
+            sql_str = sql
 
         print(sql_str)
 
