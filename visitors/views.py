@@ -67,7 +67,7 @@ def get_detail_visitor_data(request, purpose, area):
                                    .filter(area_cht__in=area_top5)
                                    .values('report_year', 'area_cht')
                                    .annotate(Sum('visitor_num'))
-                                   .order_by('-visitor_num__sum'))
+                                   .order_by('report_year'))
 
         data_dict = OrderedDict()
         data_dict_year = OrderedDict()
@@ -88,6 +88,8 @@ def get_detail_visitor_data(request, purpose, area):
         for visitor in visitors_top5_area_year:
             visitor_data = {visitor['report_year']: visitor['visitor_num__sum']}
             data_dict_year[visitor['area_cht']].append(visitor_data)
+        
+        print(visitors_top5_area_year)
 
     # month total
     visitors_month_sum = (ArrivalRecord.objects
