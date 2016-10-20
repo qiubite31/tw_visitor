@@ -32,7 +32,7 @@ def get_detail_visitor_data(request, purpose, area):
                                      .filter(area_cht=area)
                                      .values('report_year')
                                      .annotate(Sum('visitor_num'))
-                                     .order_by('-visitor_num__sum')
+                                     .order_by('report_year')
                                      )
         data_dict = OrderedDict()
         data_dict_year = OrderedDict()
@@ -130,6 +130,7 @@ def get_detail_visitor_data(request, purpose, area):
         series_year.append({'name': area_key,
                             'data': [list(value.values())[0]
                                      for value in data_list]})
+    print(data_dict_year)
 
     if area == '前五地區':
         title_area = area
