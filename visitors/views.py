@@ -117,6 +117,48 @@ def get_detail_visitor_data(request, purpose, area):
         series.append({'name': area_key,
                        'data': [list(value.values())[0]
                                 for value in data_list]})
+    # print(data_dict)
+    # 轉成drill down的第二層
+    # print(visitors_month_sum)
+
+    series_drilldown_lv2 = []
+    data_by_year = OrderedDict()
+    for data in visitors_month_sum:
+        year = data['report_year']
+        data_by_year.setdefault(year, []).append([data['report_month'], data['visitor_num__sum']])
+    # print(data_by_year)
+    for year, data in data_by_year.items():
+        drilldown_lv2_item = {'id': '全部' + '_' + str(year)}
+        series_data_list = []
+        for item in data:
+            report_month = str(year) + '-' + (str(item[0]) if item[0] >= 10 else '0' + str(item[0]))
+            print(report_month)
+            data_item = [report_month, item[1]]
+            series_data_list.append(data_item)
+        drilldown_lv2_item['data'] = series_data_list
+        series_drilldown_lv2.append(drilldown_lv2_item)
+
+    for area_key, data_list in data_dict.items():
+        drilldown_lv2_item = {}
+        series_data_list = []
+        data_by_year = OrderedDict()
+        # 將data_dict依照year拆成另一個dict
+        for data in data_list:
+            year = list(data.keys())[0][0:4]
+            data_by_year.setdefault(year, []).append(data)
+        # print(data_by_year)
+        # 依照year建立lv2 drilldown所需的物件{id: id, data:[[],[],[]]}
+        for year, data in data_by_year.items():
+            drilldown_lv2_item = {'id': area_key + '_' + year}
+            series_data_list = []
+            for item in data:
+                data_item = [list(item.keys())[0], list(item.values())[0]]
+                series_data_list.append(data_item)
+            drilldown_lv2_item['data'] = series_data_list
+            series_drilldown_lv2.append(drilldown_lv2_item)
+
+    print(series_drilldown_lv2)
+    
     series_year = []
     categories_year = []
     series_year.append({'name': '全部',
@@ -130,7 +172,37 @@ def get_detail_visitor_data(request, purpose, area):
         series_year.append({'name': area_key,
                             'data': [list(value.values())[0]
                                      for value in data_list]})
-    print(data_dict_year)
+    # print(data_dict_year)
+    # 轉成drill down的格式第一層
+    series_drilldown_lv1 = []
+    drilldown_lv1_item = {'name': '全部'}
+    series_data_list = []
+    for visitor in visitors_year_sum:
+        value_obj = OrderedDict()
+        year = visitor['report_year']
+        visit_num = visitor['visitor_num__sum']
+        value_obj['name'] = year
+        value_obj['y'] = visit_num
+        value_obj['drilldown'] = '全部_' + str(year)
+        series_data_list.append(value_obj)
+    drilldown_lv1_item['data'] = series_data_list
+    series_drilldown_lv1.append(drilldown_lv1_item)
+
+    for area_key, data_list in data_dict_year.items():
+        drilldown_lv1_item = {'name': area_key}
+        series_data_list = []
+        for data in data_list:
+            value_obj = OrderedDict()
+            year = list(data.keys())[0]
+            visit_num = list(data.values())[0]
+            value_obj['name'] = year
+            value_obj['y'] = visit_num
+            value_obj['drilldown'] = area_key + '_' + str(year)
+            series_data_list.append(value_obj)
+        drilldown_lv1_item['data'] = series_data_list
+        series_drilldown_lv1.append(drilldown_lv1_item)
+
+    # print(series_drilldown_lv1)
 
     if area == '前五地區':
         title_area = area
@@ -144,5 +216,7 @@ def get_detail_visitor_data(request, purpose, area):
                           'fontFamily': 'Helvetica Neue'})
     json_obj['series_year'] = series_year
     json_obj['categories_year'] = categories_year
+    json_obj['series_drilldown_lv1'] = series_drilldown_lv1
+    json_obj['series_drilldown_lv2'] = series_drilldown_lv2
     # print(json.dumps(json_obj))
     return HttpResponse(json.dumps(json_obj))
