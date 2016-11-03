@@ -89,7 +89,7 @@ def get_detail_visitor_data(request, purpose, area):
             visitor_data = {visitor['report_year']: visitor['visitor_num__sum']}
             data_dict_year[visitor['area_cht']].append(visitor_data)
         
-        print(visitors_top5_area_year)
+        # print(visitors_top5_area_year)
 
     # month total
     visitors_month_sum = (ArrivalRecord.objects
@@ -128,7 +128,8 @@ def get_detail_visitor_data(request, purpose, area):
         data_by_year.setdefault(year, []).append([data['report_month'], data['visitor_num__sum']])
     # print(data_by_year)
     for year, data in data_by_year.items():
-        drilldown_lv2_item = {'id': '全部' + '_' + str(year)}
+        drilldown_lv2_item = {'id': '全部' + '_' + str(year),
+                               'name': '全部'}
         series_data_list = []
         for item in data:
             report_month = str(year) + '-' + (str(item[0]) if item[0] >= 10 else '0' + str(item[0]))
@@ -149,7 +150,8 @@ def get_detail_visitor_data(request, purpose, area):
         # print(data_by_year)
         # 依照year建立lv2 drilldown所需的物件{id: id, data:[[],[],[]]}
         for year, data in data_by_year.items():
-            drilldown_lv2_item = {'id': area_key + '_' + year}
+            drilldown_lv2_item = {'id': area_key + '_' + year,
+                                  'name': area_key}
             series_data_list = []
             for item in data:
                 data_item = [list(item.keys())[0], list(item.values())[0]]
