@@ -8,13 +8,15 @@
         <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script src="https://code.highcharts.com/highcharts.js"></script>
+        <!--<script src="https://code.highcharts.com/stock/highstock.js"></script>-->
         <script src="https://code.highcharts.com/modules/exporting.js"></script>
+        <script src="https://code.highcharts.com/modules/drilldown.js"></script>
         <script src="{% static 'visitors/app.js' %}"></script>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="{% static 'visitors/main.css' %}">
     </head>
     <body>
-        <header id="header">
+        <!--<header id="header">
             <nav class="purpose">
                 <ul>
                     <li><a href="#" data-purpose="All">全部</a></li>
@@ -40,7 +42,7 @@
                     <li><a href="#" data-purpose="非洲地區">非洲</a></li>
                 </ul>                
             </nav>  
-        </header>
+        </header><--></-->
         <section class="col-lg-6 col-xs-12 col-sm-12">
             <div class="panel-block">
                 <div class='chart-option'>
@@ -55,6 +57,22 @@
                         <option value="醫療">醫療</option>
                         <option value="其它">其它</option>
                     </select>
+                    <!--<div class="dropdown area">
+                    <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                        --目的
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                            <li><a href="#">觀光</a></li>
+                            <li><a href="#">業務</a></li>
+                            <li><a href="#">探親</a></li>
+                            <li><a href="#">會議</a></li>
+                            <li><a href="#">求學</a></li>
+                            <li><a href="#">展覽</a></li>
+                            <li><a href="#">醫療</a></li>
+                            <li><a href="#">其它</a></li>
+                    </ul>
+                    </div>-->
                     <span>旅客地區: </span>
                     <select class="area">
                         <option value="Top5">前五地區</option>
@@ -73,7 +91,6 @@
             </div>
             
         </section>
-
     </body>
 </html>
 
